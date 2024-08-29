@@ -1,40 +1,29 @@
 import { useState } from "react";
+import { useSelector, useDispatch } from 'react-redux'
+import {  selectorListaTarefa, 
+          actionAddTarefa,
+          actionEditarTarefa,
+          actionRemoveTarefa } from './redux/slice/tarefaSlice';
+import Tarefa, {ITarefa} from './model/tarefa.model'
 import './App.css'
 
-interface ITarefa {
-  id:number
-  descricao: string
-}
-const inicialState:ITarefa = {id:0,descricao:''}
+const inicialState:ITarefa = new Tarefa(0,'')
 
 function App() {
-  const [listaTarefas, setlistaTarefas] = useState<Array<ITarefa>>([]);
   const [tarefaAtiva, setTarefaAtiva] = useState<ITarefa>(inicialState);
+  const listaTarefas = useSelector(selectorListaTarefa);
+  const dispatch = useDispatch();
+ 
   const focus = ()=> {
     const inputDescricao = document.getElementById('descricao')
     inputDescricao?.focus();
   }
 
   const salvar = () => {
-    let id = tarefaAtiva.id;
-    if(id === 0) {
-      if(listaTarefas.length === 0){
-        id = 1;
-      }else{
-        id = listaTarefas[listaTarefas.length - 1].id + 1;
-      }
-    }
-
-    const tarefaOfLista: ITarefa = {id, descricao: tarefaAtiva.descricao};
     if(tarefaAtiva.id === 0){
-      setlistaTarefas([...listaTarefas, tarefaOfLista]);
+      dispatch(actionAddTarefa(tarefaAtiva));
     }else{
-      setlistaTarefas(listaTarefas.map(tarefa => {
-        if(tarefa.id === id){
-          tarefa.descricao = tarefaOfLista.descricao;
-        }
-        return tarefa;
-      }));
+      dispatch(actionEditarTarefa(tarefaAtiva))
     }
     setTarefaAtiva(inicialState);
     focus();
@@ -45,7 +34,7 @@ function App() {
     focus();
   }
   const removeTarefa = (idTarefa: number)=> {
-    setlistaTarefas(listaTarefas.filter(tarefaOfLista => tarefaOfLista.id !== idTarefa));
+    dispatch(actionRemoveTarefa(idTarefa));
     setTarefaAtiva(inicialState);
     focus();
   }
@@ -61,6 +50,7 @@ function App() {
             autoFocus />
         </label>
         <button type="button" onClick={salvar}>Salvar</button>
+        <p>Quantidade de tarefas: {listaTarefas.length}</p>
       </div>
       {listaTarefas.length > 0 &&      
         <div style={{overflowX: 'auto'}}>
